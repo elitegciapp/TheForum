@@ -7,7 +7,7 @@ import { getSession, subscribeSession } from '../../lib/session';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sidebar } from '../../components/Sidebar';
-import { getDrawerOpen, setDrawerOpen } from '../../lib/sidebarPrefs';
+import { useDrawer } from '../../components/drawer/DrawerContext';
 
 function ScreenshotGuard() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -65,40 +65,7 @@ export default function AppLayout() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
   const insets = useSafeAreaInsets();
-  const [drawerOpen, setDrawerOpenState] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const open = await getDrawerOpen();
-        if (!cancelled) setDrawerOpenState(open);
-      } catch {
-        if (!cancelled) setDrawerOpenState(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    // Close drawer automatically when switching to desktop.
-    if (isDesktop) {
-      setDrawerOpenState(false);
-      setDrawerOpen(false).catch(() => {});
-    }
-  }, [isDesktop]);
-
-  async function toggleDrawer(next?: boolean) {
-    const open = typeof next === 'boolean' ? next : !drawerOpen;
-    setDrawerOpenState(open);
-    try {
-      await setDrawerOpen(open);
-    } catch {
-      // ignore
-    }
-  }
+  const { openDrawer } = useDrawer();
 
   return (
     <ProtectedGuard>
@@ -115,7 +82,7 @@ export default function AppLayout() {
             <SafeAreaView edges={['top']} style={styles.topBarSafe} pointerEvents="box-none">
               <View style={styles.topBar} pointerEvents="auto">
                 <Pressable
-                  onPress={() => toggleDrawer(true)}
+                  onPress={openDrawer}
                   accessibilityLabel="Open rooms navigation"
                   style={styles.hamburger}
                   hitSlop={8}
@@ -134,15 +101,6 @@ export default function AppLayout() {
             <Stack screenOptions={{ headerShown: false }} />
           </View>
         </View>
-
-        {!isDesktop && drawerOpen && (
-          <View style={styles.drawerOverlay}>
-            <Pressable style={styles.drawerBackdrop} onPress={() => toggleDrawer(false)} />
-            <View style={styles.drawerPanel}>
-              <Sidebar variant="drawer" onNavigate={() => toggleDrawer(false)} />
-            </View>
-          </View>
-        )}
       </View>
     </ProtectedGuard>
   );
@@ -191,14 +149,4 @@ const styles = StyleSheet.create({
   },
   hLine: { width: 16, height: 2, backgroundColor: '#1E1A14', borderRadius: 2 },
 
-  drawerOverlay: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row',
-  },
-  drawerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
-  drawerPanel: { width: 300, backgroundColor: '#F7F4EF' },
 });
