@@ -5,6 +5,7 @@ import { useScreenshotMonitor } from '../../hooks/useScreenshotMonitor';
 import { Redirect } from 'expo-router';
 import { getSession, subscribeSession } from '../../lib/session';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sidebar } from '../../components/Sidebar';
 import { getDrawerOpen, setDrawerOpen } from '../../lib/sidebarPrefs';
 
@@ -63,6 +64,7 @@ function ProtectedGuard({ children }: { children: React.ReactNode }) {
 export default function AppLayout() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
+  const insets = useSafeAreaInsets();
   const [drawerOpen, setDrawerOpenState] = useState(false);
 
   useEffect(() => {
@@ -110,22 +112,27 @@ export default function AppLayout() {
 
         <View style={styles.content}>
           {!isDesktop && (
-            <View style={styles.topBar}>
-              <Pressable
-                onPress={() => toggleDrawer(true)}
-                accessibilityLabel="Open rooms navigation"
-                style={styles.hamburger}
-              >
-                <View style={styles.hLine} />
-                <View style={styles.hLine} />
-                <View style={styles.hLine} />
-              </Pressable>
-              <Text style={styles.topBarTitle}>Communities</Text>
-              <View style={{ width: 44 }} />
-            </View>
+            <SafeAreaView edges={['top']} style={styles.topBarSafe} pointerEvents="box-none">
+              <View style={styles.topBar} pointerEvents="auto">
+                <Pressable
+                  onPress={() => toggleDrawer(true)}
+                  accessibilityLabel="Open rooms navigation"
+                  style={styles.hamburger}
+                  hitSlop={8}
+                >
+                  <View style={styles.hLine} />
+                  <View style={styles.hLine} />
+                  <View style={styles.hLine} />
+                </Pressable>
+                <Text style={styles.topBarTitle}>Communities</Text>
+                <View style={{ width: 44 }} />
+              </View>
+            </SafeAreaView>
           )}
 
-          <Stack screenOptions={{ headerShown: false }} />
+          <View style={[styles.stackWrap, !isDesktop && { paddingTop: insets.top + 52 }]} pointerEvents="box-none">
+            <Stack screenOptions={{ headerShown: false }} />
+          </View>
         </View>
 
         {!isDesktop && drawerOpen && (
@@ -144,8 +151,18 @@ export default function AppLayout() {
 const styles = StyleSheet.create({
   shell: { flex: 1, flexDirection: 'row', backgroundColor: '#F7F4EF' },
   sidebarDesktop: { width: 300 },
-  content: { flex: 1 },
+  content: { flex: 1, position: 'relative' },
 
+  stackWrap: { flex: 1 },
+
+  topBarSafe: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    zIndex: 50,
+    elevation: 50,
+  },
   topBar: {
     height: 52,
     flexDirection: 'row',
