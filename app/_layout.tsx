@@ -1,7 +1,6 @@
-import { Stack } from 'expo-router';
+import { Drawer } from 'expo-router/drawer';
 import { ActivityIndicator, View } from 'react-native';
-import { DrawerOverlay } from '../components/drawer/DrawerOverlay';
-import { DrawerProvider } from '../components/drawer/DrawerContext';
+import { DrawerContent } from '../components/DrawerContent';
 import {
   PlayfairDisplay_400Regular,
   PlayfairDisplay_600SemiBold,
@@ -25,19 +24,23 @@ export default function RootLayout() {
   }
 
   return (
-    <DrawerProvider>
-      <View style={{ flex: 1 }}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(onboarding)" />
-          <Stack.Screen name="(app)" />
-          <Stack.Screen name="admin" />
-          <Stack.Screen name="settings/account" options={{ headerShown: true, title: 'Account' }} />
-        </Stack>
-
-        <DrawerOverlay />
-      </View>
-    </DrawerProvider>
+    <Drawer
+      drawerContent={(props) => <DrawerContent {...props} />}
+      screenOptions={{
+        headerShown: false,
+        drawerType: 'front',
+        overlayColor: 'rgba(0,0,0,0.25)',
+      }}
+    >
+      <Drawer.Screen name="index" options={{ drawerItemStyle: { display: 'none' }, swipeEnabled: false }} />
+      <Drawer.Screen name="(auth)" options={{ drawerItemStyle: { display: 'none' }, swipeEnabled: false }} />
+      <Drawer.Screen name="(onboarding)" options={{ drawerItemStyle: { display: 'none' }, swipeEnabled: false }} />
+      <Drawer.Screen name="(app)" options={{ drawerItemStyle: { display: 'none' } }} />
+      <Drawer.Screen name="admin" options={{ drawerItemStyle: { display: 'none' }, swipeEnabled: false }} />
+      <Drawer.Screen
+        name="settings/account"
+        options={{ drawerItemStyle: { display: 'none' }, swipeEnabled: false, headerShown: true, title: 'Account' }}
+      />
+    </Drawer>
   );
 }

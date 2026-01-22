@@ -7,7 +7,7 @@ import { getSession, subscribeSession } from '../../lib/session';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sidebar } from '../../components/Sidebar';
-import { useDrawer } from '../../components/drawer/DrawerContext';
+import { DrawerActions, useNavigation } from '@react-navigation/native';
 
 function ScreenshotGuard() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -65,7 +65,10 @@ export default function AppLayout() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
   const insets = useSafeAreaInsets();
-  const { openDrawer } = useDrawer();
+  const navigation = useNavigation();
+  function openDrawer() {
+    navigation.dispatch(DrawerActions.openDrawer());
+  }
 
   return (
     <ProtectedGuard>
